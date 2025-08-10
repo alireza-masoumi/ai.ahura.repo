@@ -1,0 +1,53 @@
+
+services:
+ app:
+ # TODO: either build: . or image: your/image
+   build: .
+   container_name: app
+   env_file: .env
+   ports:
+    - "8000:8000" # TODO: adjust if you change PORT
+   depends_on:
+    - redis
+ # TODO: add healthcheck for /healthz
+   healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+    interval: 10s
+    timeout: 2s
+    retries: 5
+   restart: unless-stopped
+   deploy:
+     resources:
+       limits:
+         cpus: "0.50"
+         memory: "1024M"
+
+ redis:
+   image: redis:7-alpine
+   container_name: redis
+   restart: unless-stopped
+
+ prometheus:
+   image: prom/prometheus
+   container_name: prometheus
+   volumes:
+     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+   ports:
+     - "9090:9090"
+   restart: unless-stopped
+
+ grafana:
+   image: grafana/grafana
+   container_name: grafana
+   environment:
+     - GF_AUTH_ANONYMOUS_ENABLED=false
+     - GF_SECURITY_ADMIN_USER=admin
+     - GF_SECURITY_ADMIN_PASSWORD=admin
+   volumes:
+     - ./grafana/provisioning:/etc/grafana/provisioning:ro
+     - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards:ro
+   ports:
+     - "3000:3000"
+   depends_on:
+     - prometheus
+   restart: unless-stopped

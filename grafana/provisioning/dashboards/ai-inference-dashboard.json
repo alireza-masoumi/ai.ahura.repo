@@ -1,0 +1,51 @@
+{
+ "annotations": {
+ "list": []
+ },
+ "editable": true,
+ "gnetId": null,
+ "graphTooltip": 0,
+ "id": null,
+ "iteration": 1,
+ "links": [],
+ "panels": [
+ {
+ "type": "graph",
+ "title": "Requests Total",
+ "targets": [
+ {
+ "expr": "requests_total"
+ }
+ ],
+ "gridPos": {
+ "h": 8,
+ "w": 12,
+ "x": 0,
+ "y": 0
+ }
+ },
+ {
+ "type": "graph",
+ "title": "Request Latency (Histogram, seconds)",
+ "targets": [
+ {
+ "expr": "histogram_quantile(0.95, sum(rate(request_latency_seconds_bucket[1m])) by (le))"
+ }
+ ],
+ "gridPos": {
+ "h": 8,
+ "w": 12,
+ "x": 12,
+ "y": 0
+ }
+ }
+ ],
+ "schemaVersion": 27,
+ "style": "dark",
+ "tags": [
+ "example"
+ ],
+ "timezone": "",
+ "title": "AIAhura Tech \u2014 AI Inference (Example)",
+ "version": 1
+}
