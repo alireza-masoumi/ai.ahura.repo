@@ -1,93 +1,139 @@
-# AIAhura Tech — DevOps Technical Assessment: AI Inference Service
+
+markdown
+Copy
+Edit
+# AI Inference Service — DevOps Technical Assessment
+
+## 1. Overview
+This project implements a containerized **FastAPI** inference service with the following features:
+- Prometheus metrics (Counter + Histogram) to monitor request counts and latencies.
+- Redis-backed rate limiting to control request rates per client IP with a fail-open strategy for resiliency.
+- Health check endpoint for service availability monitoring.
+- Fully automated CI/CD pipeline using GitHub Actions.
+- Optimized Docker multi-stage builds for smaller image size and faster build times.
+- Grafana dashboards provisioned for rich observability and visualization of metrics.
+
+The base code included TODO placeholders for metrics, rate limiting, and CI setup.  
+All these components have been fully implemented, tested, and integrated.
 
 ---
-**AIAhura Tech** 
-AI Infrastructure & Cloud GPU Solutions 
-_DevOps Technical Assessment — Confidential_
----
 
+## 2. Quickstart
 
-# DevOps Technical Assessment — AI Inference Service
+Follow these steps to get the system running locally:
 
-You are given a tiny AI inference API (FastAPI) that serves a toy sentiment model. Your job is to containerize it, make it reproducible, observable, and CI/CD‑ready.
-
-## Quickstart
 ```bash
-# 1) Copy .env.example to .env and adjust if needed
+# 1. Copy environment configuration file and adjust if necessary
 cp .env.example .env
 
-# 2) Build and run everything
+# 2. Build and launch all containers
 docker compose up --build
 
-# Services
-# API: http://localhost:8000
-# Health: http://localhost:8000/healthz
-# Metrics: http://localhost:8000/metrics
-# Prometheus: http://localhost:9090
-# Grafana: http://localhost:3000 (user: admin, pass: admin)
-```
+# 3. Access the services on localhost:
+# API Endpoint:     http://localhost:8000
+# Health Check:     http://localhost:8000/healthz
+# Prometheus Metrics: http://localhost:8000/metrics
+# Prometheus Server: http://localhost:9090
+# Grafana Dashboard: http://localhost:3000  (default user/pass: admin/admin)
+3. Features Implemented
+✅ Prometheus Metrics – Implemented two key metrics:
 
-## What to deliver
-- Working Dockerfile + docker-compose
-- Health, metrics, rate limiting
-- Prometheus scraping and Grafana reachable
-- GitHub Actions CI (lint/tests/build + conditional push)
-- Clear documentation of decisions and troubleshooting
+REQUEST_COUNT: Counter for total HTTP requests, labeled by method and endpoint.
 
-## Configuration (.env)
-```
-PORT=8000
-LOG_LEVEL=INFO
-REDIS_URL=redis://redis:6379/0
-RATE_LIMIT_PER_MIN=60
-```
+REQUEST_LATENCY: Histogram measuring request processing time.
 
-## Endpoints
-- `GET /healthz` – health check
-- `POST /predict` – sentiment label for `{"text": "..."}`
-- `GET /metrics` – Prometheus metrics
+✅ Redis-backed Rate Limiting – A decorator limiting the number of requests per minute using Redis, with fail-open to avoid service disruption if Redis is down.
 
-## Makefile
-Common commands:
-```
-make build # docker build
-make run # docker compose up
-make test # pytest
-make lint # basic lint
-make fmt # format code (ruff/black if installed)
-make clean # remove build artifacts
-```
+✅ Health Check Endpoint – /healthz returns JSON status for monitoring and readiness checks.
 
-## System Diagram (Mermaid)
-```mermaid
+✅ Multi-stage Dockerfile – Efficient image building using builder stage and non-root user execution, ensuring smaller image size and enhanced security.
+
+✅ Grafana Dashboards – Pre-configured JSON dashboards are mounted and provisioned for visualizing application metrics.
+
+✅ CI/CD Pipeline with GitHub Actions – Automated linting, testing, building, and conditional Docker image pushing on the main branch.
+
+✅ YAML Syntax Fixes – All YAML configuration files (Grafana, Prometheus, docker-compose) have been verified and fixed for correct indentation and structure.
+
+✅ Non-root User in Docker – Docker image runs under a non-root user to adhere to security best practices.
+
+4. Architecture Diagram
+mermaid
+Copy
+Edit
 flowchart LR
- client((Client)) -->|HTTP| app[FastAPI App]
- app -->|/metrics scrape| prom[Prometheus]
- prom --> graf[Grafana]
- app -->|rate limit| redis[(Redis)]
-```
+    client((Client)) --> app[FastAPI App]
+    app -->|/metrics scrape| prom[Prometheus]
+    prom --> graf[Grafana]
+    app -->|rate limit| redis[(Redis)]
+This architecture shows the client sending requests to the FastAPI service, which exposes metrics for Prometheus scraping. Prometheus stores these metrics and Grafana visualizes them. Redis is used by the app to store rate limiting counters.
 
-## Notes
-- Logs are JSON‑structured to stdout.
-- Prometheus scrapes `app:8000/metrics` via docker network.
-- Grafana provisioning adds Prometheus data source and an example dashboard.
-- CI workflow is a skeleton; fill in registry creds to enable pushes.
+5. Metrics & Observability
+The following Prometheus metrics are exposed by the app at /metrics:
 
+requests_total: Counter of all HTTP requests, labeled by HTTP method and endpoint.
 
----
+request_latency_seconds: Histogram of request processing times to monitor performance.
 
-## Candidate TODO Checklist
-- [ ] Complete **Dockerfile** (multi-stage, non-root, pinned deps, entrypoint/cmd).
-- [ ] Finish **docker-compose.yml**: define services, healthchecks, ports, resource limits.
-- [ ] Implement **/metrics** in `app/app.py` using `prometheus_client`.
-- [ ] Instrument requests in `app/metrics.py` (Counter + Histogram).
-- [ ] Implement rate limiting in `app/rate_limit.py` (Redis-based, decorator form).
-- [ ] Wire Redis into `/predict` via the rate limiter.
-- [ ] Provision Prometheus to scrape the app (adjust `prometheus.yml` if needed).
-- [ ] Provision Grafana: confirm Prometheus datasource; optional dashboard JSON.
-- [ ] Finish **.github/workflows/ci.yml** to lint, test, build and (on main) push image.
-- [ ] Update **Makefile** targets as needed.
-- [ ] Document trade-offs and troubleshooting in README.
+These metrics are scraped by Prometheus and visualized on Grafana dashboards.
 
----
+6. Rate Limiting
+Implemented as a Python decorator in rate_limit.py:
+
+Uses Redis to count requests per client IP.
+
+The limit is configurable via RATE_LIMIT_PER_MIN environment variable.
+
+If Redis is unreachable, the system falls back to fail-open mode to avoid blocking traffic.
+
+7. Trade-offs
+Multi-stage Docker builds and wheel packages: Achieved smaller images and faster build times but added complexity to the Dockerfile.
+
+--no-deps installs: Used to prevent installation of unwanted or incompatible dependencies.
+
+Redis for rate limiting: Provides efficient and persistent request tracking but adds an external dependency.
+
+Prometheus and Grafana: Provide rich observability but increase system complexity and require careful provisioning and configuration.
+
+8. Troubleshooting
+Fixed YAML syntax errors across all project files, especially in Grafana provisioning and Prometheus configs.
+
+Ensured proper mounting of Grafana dashboard directory in docker-compose.yml:
+
+yaml
+Copy
+Edit
+./grafana/provisioning/dashboards:/var/lib/grafana/dashboards:ro
+Adjusted service addresses and ports in tests and configs.
+
+Added non-root user execution in Dockerfile to avoid permission issues.
+
+9. Health Check
+The endpoint GET /healthz returns:
+
+json
+Copy
+Edit
+{
+  "status": "ok"
+}
+This is used for Docker container healthchecks and CI readiness checks.
+
+10. Testing & CI
+Local commands:
+
+bash
+Copy
+Edit
+make lint    # Run code linting
+make test    # Run unit tests
+CI Pipeline includes:
+
+Linting (using ruff or pyflakes)
+
+Running tests (pytest)
+
+Docker image build
+
+Conditional image push to Docker Hub on the main branch
+
 © 2025 AIAhura Tech. For interview assessment use.
