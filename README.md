@@ -1,7 +1,3 @@
-
-markdown
-Copy
-Edit
 # AI Inference Service — DevOps Technical Assessment
 
 ## 1. Overview
@@ -35,7 +31,7 @@ docker compose up --build
 # Prometheus Metrics: http://localhost:8000/metrics
 # Prometheus Server: http://localhost:9090
 # Grafana Dashboard: http://localhost:3000  (default user/pass: admin/admin)
-3. Features Implemented
+
 ✅ Prometheus Metrics – Implemented two key metrics:
 
 REQUEST_COUNT: Counter for total HTTP requests, labeled by method and endpoint.
@@ -57,14 +53,12 @@ REQUEST_LATENCY: Histogram measuring request processing time.
 ✅ Non-root User in Docker – Docker image runs under a non-root user to adhere to security best practices.
 
 4. Architecture Diagram
-mermaid
-Copy
-Edit
 flowchart LR
     client((Client)) --> app[FastAPI App]
     app -->|/metrics scrape| prom[Prometheus]
     prom --> graf[Grafana]
     app -->|rate limit| redis[(Redis)]
+
 This architecture shows the client sending requests to the FastAPI service, which exposes metrics for Prometheus scraping. Prometheus stores these metrics and Grafana visualizes them. Redis is used by the app to store rate limiting counters.
 
 5. Metrics & Observability
@@ -98,36 +92,22 @@ Prometheus and Grafana: Provide rich observability but increase system complexit
 Fixed YAML syntax errors across all project files, especially in Grafana provisioning and Prometheus configs.
 
 Ensured proper mounting of Grafana dashboard directory in docker-compose.yml:
-
-yaml
-Copy
-Edit
 ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards:ro
 Adjusted service addresses and ports in tests and configs.
-
 Added non-root user execution in Dockerfile to avoid permission issues.
 
 9. Health Check
 The endpoint GET /healthz returns:
 
-json
-Copy
-Edit
 {
   "status": "ok"
 }
-This is used for Docker container healthchecks and CI readiness checks.
 
 10. Testing & CI
 Local commands:
-
-bash
-Copy
-Edit
 make lint    # Run code linting
 make test    # Run unit tests
 CI Pipeline includes:
-
 Linting (using ruff or pyflakes)
 
 Running tests (pytest)
@@ -136,4 +116,3 @@ Docker image build
 
 Conditional image push to Docker Hub on the main branch
 
-© 2025 AIAhura Tech. For interview assessment use.
