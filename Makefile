@@ -1,4 +1,3 @@
-
 .PHONY: build run test lint fmt clean
 
 build:
@@ -8,7 +7,7 @@ run:
 	docker compose up --build
 
 test:
-	pytest -q
+	PYTHONPATH=./app pytest -q app/tests
 
 lint:
 	python -m pyflakes app || true
