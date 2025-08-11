@@ -31,7 +31,7 @@ jobs:
         run: python -m black --check app || true
 
       - name: Run tests
-        run: pytest -q
+        run: PYTHONPATH=./app pytest -q app/tests
 
       - name: Build Docker image
         run: docker build -t ai-infer:dev .
